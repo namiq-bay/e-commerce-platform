@@ -4,17 +4,15 @@ import com.ecommerce.platform.product.domain.MoneyTypes;
 import com.ecommerce.platform.product.domain.Product;
 import com.ecommerce.platform.product.domain.ProductImage;
 import com.ecommerce.platform.product.domain.elastic.ProductES;
-import com.ecommerce.platform.product.model.ProductDTO;
-import com.ecommerce.platform.product.model.ProductSaveRequest;
 import com.ecommerce.platform.product.model.ProductSellerDTO;
+import com.ecommerce.platform.product.model.product.ProductDTO;
+import com.ecommerce.platform.product.model.product.ProductSaveRequest;
 import com.ecommerce.platform.product.repository.elastic.ProductESRepository;
 import com.ecommerce.platform.product.repository.mongo.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-
-import java.math.BigDecimal;
 
 import static com.ecommerce.platform.product.domain.ProductImage.ImageType;
 import static java.util.stream.Collectors.toList;
@@ -26,7 +24,6 @@ public class ProductService {
     private final ProductESRepository productESRepository;
     private final ProductRepository productRepository;
     private final ProductDeliveryService productDeliveryService;
-    private final ProductPriceService productPriceService;
     private final ProductAmountService productAmountService;
     private final ProductImageService productImageService;
     private final ProductESService productESService;
@@ -42,9 +39,10 @@ public class ProductService {
                 .code("PR001")
                 .categoryId(request.getCategoryID())
                 .companyId(request.getSellerID())
-                .description(request.getDescripton())
+                .description(request.getDescription())
                 .features(request.getFeatures())
                 .name(request.getName())
+                .price(request.getPrice())
                 .productImage(request.getImages().stream()
                         .map(it -> new ProductImage(ImageType.FEATURE, it))
                         .collect(toList()))
@@ -61,10 +59,10 @@ public class ProductService {
         if (item == null)
             return null;
 
-        BigDecimal productPrice = productPriceService.getByMoneyType(item.getId(), MoneyTypes.USD);
-
         return ProductDTO.builder()
-                .price(productPrice)
+                // TODO client request
+                .price(item.getPrice().get("USD"))
+                .moneySymbol(MoneyTypes.USD.getSymbol())
                 .name(item.getName())
                 .features(item.getFeatures())
                 .id(item.getId())
@@ -72,8 +70,7 @@ public class ProductService {
                 .deliveryIn(productDeliveryService.getDeliveryInfo(item.getId()))
                 .categoryId(item.getCategory().getId())
                 .available(productAmountService.getByProductId(item.getId()))
-                .freeDelivery(productDeliveryService.checkFreeDelivery(item.getId(), productPrice))
-                .moneyTypes(MoneyTypes.USD)
+                .freeDelivery(productDeliveryService.checkFreeDelivery(item.getId(), item.getPrice().get("USD"), MoneyTypes.USD))
                 .image(productImageService.getProductMainImage(item.getId()))
                 .seller(ProductSellerDTO.builder().id(item.getSeller().getId()).name(item.getSeller().getName()).build())
                 .build();

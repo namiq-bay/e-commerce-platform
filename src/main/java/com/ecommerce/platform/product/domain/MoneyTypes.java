@@ -14,7 +14,6 @@ public enum MoneyTypes {
     private String label;
     private String symbol;
 
-
     public String getSymbol() {
         return symbol;
     }

@@ -1,6 +1,6 @@
-package com.ecommerce.platform.product.model;
+package com.ecommerce.platform.product.model.product;
 
-import com.ecommerce.platform.product.domain.MoneyTypes;
+import com.ecommerce.platform.product.model.ProductSellerDTO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,7 +20,7 @@ public class ProductDTO {
     private String deliveryIn;
     private BigDecimal price;
     private String categoryId;
-    private MoneyTypes moneyTypes;
-
+    //    private MoneyTypes moneyTypes;
+    private String moneySymbol;
 
 }
